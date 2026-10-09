@@ -1,0 +1,11 @@
+Cobble 0.1.4 — Michael Williamson
+
+The upstream README declares the 2-Clause BSD license:
+https://github.com/mwilliamson/python-cobble#license
+https://opensource.org/license/bsd-2-clause
+
+The 0.1.4 wheel contains a BSD classifier but no separate license text or
+copyright-year notice. This project does not invent an upstream copyright
+statement. No Cobble code is vendored in this source release; setup installs
+it from PyPI. Before bundling its code in a binary release, obtain and retain
+the applicable upstream copyright notice and full license text.

@@ -1,0 +1,10 @@
+# Direct and transitive runtime dependencies, reviewed for v0.3.0.
+PyMuPDF==1.28.2
+mammoth==1.13.0
+Pillow==12.3.0
+Markdown==3.11
+beautifulsoup4==4.15.0
+defusedxml==0.7.1
+cobble==0.1.4
+soupsieve==2.10
+typing_extensions==4.16.0

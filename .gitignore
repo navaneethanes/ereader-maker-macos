@@ -1,0 +1,31 @@
+.venv/
+__pycache__/
+data/
+tmp/
+.DS_Store
+*.log
+.build/
+Kindle Books/
+*.app/
+dist/
+.env
+.env.*
+!.env.example
+*.pem
+*.key
+*.p12
+*.mobileprovision
+*.epub
+*.pdf
+*.docx
+*.doc
+*.cbz
+*.azw*
+*.mobi
+.coverage
+.pytest_cache/
+venv/
+# Local-only browser prototype, superseded by the native macOS app.
+app.py
+static/
+templates/
