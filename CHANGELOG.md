@@ -1,5 +1,12 @@
 # Changelog
 
+## 0.5.0 — 2026-10-09
+
+- Jupyter v4 notebooks, Python scripts/Databricks SOURCE exports, and DBC notebook archives convert to EPUB without executing code.
+- Preserve Markdown headings and complete code; saved text/table output previews share a 10-line budget per cell, with long rows clipped and a visible notice. Include one saved PNG/JPEG plot per cell.
+- Pick automatic covers randomly from the 100 bundled designs; keep manual/custom choices and existing ebook-cover defaults.
+- Start each launch with an empty conversion list. Keep saved books and the output-folder preference. Older history files are no longer loaded or updated.
+
 ## 0.4.0 — 2026-10-09
 
 - Universal Mac app download with drag-to-Applications installation and first-use setup.

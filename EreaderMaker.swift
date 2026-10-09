@@ -58,7 +58,6 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSWindowDelegate, NSTa
     var manifestURL: URL?
     var root: URL { RuntimeLocation.engine }
     var destination: URL!
-    var historyURL: URL { RuntimeLocation.support.appendingPathComponent("native-library.json") }
     let accent = NSColor(calibratedRed: 0.68, green: 0.76, blue: 1.0, alpha: 1)
 
     func applicationDidFinishLaunching(_ notification: Notification) {
@@ -69,15 +68,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSWindowDelegate, NSTa
             NSApp.applicationIconImage = icon
         }
         destination = FileManager.default.urls(for: .documentDirectory, in: .userDomainMask)[0].appendingPathComponent("E-reader Maker", isDirectory: true)
-        let legacy = Bundle.main.bundleURL.deletingLastPathComponent().appendingPathComponent("data/native-library.json")
-        if !FileManager.default.fileExists(atPath: historyURL.path), let data = try? Data(contentsOf: legacy) {
-            try? FileManager.default.createDirectory(at: RuntimeLocation.support, withIntermediateDirectories: true)
-            try? data.write(to: historyURL, options: .atomic)
-        }
         if let stored = UserDefaults.standard.string(forKey: "destination") { destination = URL(fileURLWithPath: stored) }
-        if let data = try? Data(contentsOf: historyURL), let saved = try? JSONDecoder().decode([ReadingFile].self, from: data) {
-            files = saved.filter { $0.result != nil }.suffix(100).map { $0 }
-        }
         buildMenu()
         window = NSWindow(contentRect: NSRect(x: 0, y: 0, width: 780, height: 685), styleMask: [.titled, .closable, .miniaturizable, .resizable], backing: .buffered, defer: false)
         window.title = "E-reader Maker"
@@ -133,7 +124,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSWindowDelegate, NSTa
         icon.contentTintColor = accent; icon.symbolConfiguration = NSImage.SymbolConfiguration(pointSize: 34, weight: .light)
         emptyState.addArrangedSubview(icon)
         emptyState.addArrangedSubview(label("Drop something worth reading", size: 17, weight: .medium))
-        emptyState.addArrangedSubview(label("PDF · Word · EPUB · images · comics · text", size: 12, color: .secondaryLabelColor))
+        emptyState.addArrangedSubview(label("PDF · Word · EPUB · images · notebooks · code", size: 12, color: .secondaryLabelColor))
         box.addSubview(emptyState)
         NSLayoutConstraint.activate([emptyState.centerXAnchor.constraint(equalTo: box.centerXAnchor), emptyState.centerYAnchor.constraint(equalTo: box.centerYAnchor)])
 
@@ -224,7 +215,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSWindowDelegate, NSTa
     @objc func pickFiles() {
         guard task == nil && setupTask == nil else { return }
         let panel = NSOpenPanel(); panel.canChooseFiles = true; panel.canChooseDirectories = false; panel.allowsMultipleSelection = true; panel.allowsOtherFileTypes = true
-        panel.message = "Choose documents, ebooks, images, or comics to read on your Kindle."
+        panel.message = "Choose documents, ebooks, images, notebooks, or Python files to read on your Kindle."
         panel.beginSheetModal(for: window) { [weak self] response in if response == .OK { self?.add(panel.urls) } }
     }
     func add(_ urls: [URL]) {
@@ -235,6 +226,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSWindowDelegate, NSTa
             guard FileManager.default.fileExists(atPath: url.path, isDirectory: &directory), !directory.boolValue else { continue }
             if files.contains(where: { $0.path == url.path && $0.result == nil }) { continue }
             var file = ReadingFile(path: url.path); file.title = readableTitle(url.deletingPathExtension().lastPathComponent)
+            file.coverDesign = Int.random(in: 0..<100)
             files.append(file); count += 1
         }
         status.stringValue = count > 0 ? "\(count) file\(count == 1 ? "" : "s") added. Ready to make a better read." : "Choose files that aren’t already waiting in the list."
@@ -244,7 +236,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSWindowDelegate, NSTa
     @objc func removeSelected() {
         guard task == nil && setupTask == nil else { return }
         for index in table.selectedRowIndexes.reversed() { files.remove(at: index) }
-        persist(); refresh(); status.stringValue = "Removed from this list. Saved books are still in their folder."
+        refresh(); status.stringValue = "Removed from this list. Saved books are still in their folder."
     }
     @objc func layoutChanged() {
         detail.stringValue = layout.selectedSegment == 0 ? "Images, tables, and spacing are prepared for a smaller screen." : "PDF pages stay exactly as they look. Text on page images won’t resize."
@@ -262,9 +254,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSWindowDelegate, NSTa
         progress.isHidden = !busy
         if busy { progress.startAnimation(nil) } else { progress.stopAnimation(nil) }
     }
-    func persist() {
-        do { try FileManager.default.createDirectory(at: historyURL.deletingLastPathComponent(), withIntermediateDirectories: true); try JSONEncoder().encode(files.filter { $0.result != nil }).write(to: historyURL, options: .atomic) } catch { status.stringValue = "Books are saved, but the recent list could not be stored." }
-    }
+
     func updateDestination() { destinationLabel.stringValue = "Saved to \(destination.path)"; destinationLabel.toolTip = destination.path }
     @objc func changeFolder() {
         guard task == nil && setupTask == nil else { status.stringValue = "Finish this conversion before changing the folder."; return }
@@ -382,7 +372,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSWindowDelegate, NSTa
         } else if kind == "done" {
             files[i].result = event["path"] as? String; files[i].notes = event["notes"] as? [String] ?? []
             let size = ByteCountFormatter.string(fromByteCount: (event["size"] as? NSNumber)?.int64Value ?? 0, countStyle: .file)
-            files[i].state = "Ready for Kindle · EPUB · \(size)"; persist()
+            files[i].state = "Ready for Kindle · EPUB · \(size)"
         } else if kind == "error" || kind == "cancelled" {
             let message = event["message"] as? String ?? "Could not convert this file."
             files[i].state = message; files[i].failed = true; files[i].notes = [message]
@@ -394,7 +384,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSWindowDelegate, NSTa
         for i in files.indices where files[i].result == nil && !files[i].failed { files[i].state = cancelled ? "Cancelled · ready to retry" : "Ready to retry" }
         let failures = files.filter { $0.result == nil }.count
         status.stringValue = cancelled ? "Cancelled. Completed books are saved; originals are unchanged." : (fatalMessage ?? (code != 0 ? "The conversion stopped unexpectedly. You can retry the remaining files." : failures > 0 ? "\(failures) file\(failures == 1 ? " needs" : "s need") attention. Click ⓘ for details." : "Ready to read. Open the folder, then send your EPUBs to Kindle."))
-        persist(); refresh()
+        refresh()
     }
     @objc func cancel() {
         guard let process = task else { return }; cancelled = true

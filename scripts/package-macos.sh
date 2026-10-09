@@ -2,7 +2,7 @@
 # SPDX-License-Identifier: AGPL-3.0-only
 set -eu
 cd "${0:A:h:h}"
-version='0.4.0'
+version='0.5.0'
 ./build-app.sh --universal
 mkdir -p dist
 stage="$(mktemp -d "$PWD/.build/dmg-XXXXXX")"

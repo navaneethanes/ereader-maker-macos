@@ -45,7 +45,7 @@ def run_batch(manifest, destination, layout):
             if source.stat().st_size == 0 or source.stat().st_size > 200 * 1024 * 1024:
                 raise ValueError('Choose a nonempty file smaller than 200 MB.')
             if source.suffix.lower() not in BASIC | EXTENDED | {'.doc', '.rtf'}:
-                raise ValueError('This file type is not supported. Try PDF, DOCX, EPUB, text, or an image.')
+                raise ValueError('This file type is not supported. Try PDF, DOCX, EPUB, IPYNB, PY, DBC, text, or an image.')
             title = (item.get("title") or clean_title(source.stem)).strip()
             if not title or len(title) > 240:
                 raise ValueError("Choose a book title of 1–240 characters.")

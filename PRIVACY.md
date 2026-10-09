@@ -1,14 +1,14 @@
 # Privacy notice
 
-Effective for E-reader Maker 0.4.0, 9 October 2026.
+Effective for E-reader Maker 0.5.0, 9 October 2026.
 
 ## Local conversion
 
 The native app reads files you select, runs a local Python worker, and writes converted books to your selected folder. It has no analytics, advertising, sign-in, background upload, or local HTTP server. Source files are not intentionally modified.
 
-`~/Library/Application Support/E-reader Maker/native-library.json` records up to 100 completed entries, including source paths, output paths, edited titles, selected cover designs, custom-image paths, and conversion notes. Built-in artwork and title rendering run locally; selected images are read from disk. Custom images are embedded in the resulting EPUB, but their source file remains unchanged. Folder selection is stored in macOS preferences for `local.ereadermaker.reader`. Pending batch paths are written to a randomly named temporary manifest. That manifest is removed when the batch finishes or is cancelled normally. Temporary conversion directories and a reserved output filename may remain after a forced termination or power loss.
+The conversion list, source paths, edited titles, and cover choices are kept in memory for the current session only. Each launch starts empty. Earlier versions’ `native-library.json` files are no longer read or updated. Built-in artwork and title rendering run locally; selected images are read from disk. Custom images are embedded in the resulting EPUB; source files remain unchanged. Notebook and Python code is read as data and never executed. Saved notebook outputs, including potentially sensitive table values, may appear in the resulting book. Folder selection is stored in macOS preferences for `local.ereadermaker.reader`. Pending batch paths are written to a randomly named temporary manifest. That manifest is removed when the batch finishes or is cancelled normally. Temporary conversion directories and a reserved output filename may remain after a forced termination or power loss.
 
-To clear history, quit the app and delete `~/Library/Application Support/E-reader Maker/native-library.json`. To reset the folder preference, run `defaults delete local.ereadermaker.reader destination` in Terminal. Delete output books separately if desired; removing rows does not delete them. macOS backups and cloud-synced folders may retain copies under your own settings.
+To remove a history file left by version 0.4 or earlier, quit the app and delete `~/Library/Application Support/E-reader Maker/native-library.json`. To reset the folder preference, run `defaults delete local.ereadermaker.reader destination` in Terminal. Delete output books separately if desired; removing rows does not delete them. macOS backups and cloud-synced folders may retain copies under your own settings.
 
 ## Network boundaries
 

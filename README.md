@@ -22,7 +22,7 @@ Select a waiting book and click **Cover & title**. Clean up its title, choose fr
 
 ![Examples of original locally generated book covers](docs/cover-examples.jpg)
 
-Documents receive a new cover automatically. Existing EPUB covers are kept by default, and can be replaced explicitly. No book content is uploaded to make a cover. Built-in decorative artwork is CC0; your photos and original books retain their own rights.
+Documents receive a randomly selected built-in cover automatically. Existing EPUB covers are kept by default, and can be replaced explicitly. No book content is uploaded to make a cover. Built-in decorative artwork is CC0; your photos and original books retain their own rights.
 
 ## Use it
 
@@ -34,13 +34,16 @@ Documents receive a new cover automatically. Existing EPUB covers are kept by de
 
 EPUBs are intended for Send to Kindle, not direct USB copying to a Kindle. Other EPUB-compatible readers can open them directly. Amazon controls acceptance, conversion, and device support.
 
-By default, files are saved in **Kindle Books** in your Documents folder (`~/Documents/E-reader Maker`). Choose **Change…** for another destination. Existing files receive a numbered suffix instead of being overwritten. Removing a row does not delete a saved book. Your originals are read in place and remain unchanged.
+Each launch starts with an empty list. Completed books stay in their output folder, and the app remembers your folder choice.
+
+By default, files are saved in **E-reader Maker** in your Documents folder (`~/Documents/E-reader Maker`). Choose **Change…** for another destination. Existing files receive a numbered suffix instead of being overwritten. Removing a row does not delete a saved book. Your originals are read in place and remain unchanged.
 
 ## Reading layout
 
 - **Smart PDFs:** reflow straightforward text and preserve illustrations. Complex columns, diagrams, and ambiguous tables keep their original page image to avoid guessing the reading order.
 - **Images:** centered, proportionally scaled, and limited to 1800 × 2400 pixels. Transparency is flattened onto white. Multi-frame images use the first frame.
 - **Tables:** simple wide tables split into small sections with repeated identifying columns. Long tables repeat headers. Merged cells remain merged; complex layouts may need manual review.
+- **Notebooks and Python:** headings, Markdown, complete code cells, and saved outputs become readable book sections. Code is never executed. Each cell gets at most 10 saved text/table output lines, clipped at 80 characters per line; up to one saved PNG/JPEG plot is included. Font size may cause preview lines to wrap on your device. See the [notebook guide](docs/NOTEBOOKS.md).
 - **Code and typography:** relative text sizes, headings, and code formatting. The reader controls its theme and typeface independently of the app's dark window.
 - **Scans:** original page images remain visible. English OCR text is added when optional Tesseract is installed. OCR can make mistakes.
 - **Keep page layout:** PDF pages become images, preserving appearance but losing adjustable text size.
@@ -54,15 +57,16 @@ Conversion is heuristic. Check important tables, technical examples, mathematics
 | --- | --- |
 | PDF, DOCX, TXT, Markdown, HTML, EPUB, CBZ | [Calibre](https://calibre-ebook.com/download_osx): MOBI, AZW, AZW3, FB2, ODT, LIT, PDB, DJVU, CBR |
 | JPG, PNG, WebP, GIF, BMP, TIFF | [Tesseract](https://tesseract-ocr.github.io/): English OCR |
+| Jupyter IPYNB, Python PY (including Databricks SOURCE), Databricks DBC notebook archives | No notebook kernel or Databricks account needed |
 | DOC and RTF through macOS `textutil` | Install optional tools separately; none are bundled |
 
 HTML/Markdown data-embedded images are included; website and local-path images are omitted. External Word resources are disabled. Protected/password-locked files are not unlocked. E-reader Maker includes no DRM-removal feature. Calibre installations and plugins are controlled by the user. Audio and video are unsupported.
 
-Limits: 100 files per batch, 200 MB per input, 500 MB declared archive expansion, 2,000 PDF pages/comic images. These checks reduce accidental resource exhaustion; they are not a sandbox or protection against every hostile document.
+Limits: 100 files per batch, 200 MB per input, 500 MB declared archive expansion, 2,000 PDF pages/comic images; 40 MB per notebook/code file or DBC notebook entry, 10,000 cells per export. These checks reduce accidental resource exhaustion; they are not a sandbox or protection against every hostile document.
 
 ## Privacy and security
 
-Native conversion has no server, analytics, account, or automatic upload. Conversion history includes local paths and is saved in `~/Library/Application Support/E-reader Maker/native-library.json`. First setup contacts the official Astral Python-build-standalone GitHub release and PyPI; links open external websites in your browser. Optional tools have their own behavior. Original EPUBs may retain remote references and metadata. Read the [privacy notice](PRIVACY.md) and [security policy](SECURITY.md).
+Native conversion has no server, analytics, account, or automatic upload. The file list lives only in memory and starts empty each launch. Earlier versions' history files are no longer read or updated. First setup contacts the official Astral Python-build-standalone GitHub release and PyPI; links open external websites in your browser. Optional tools have their own behavior. Original EPUBs may retain remote references and metadata. Read the [privacy notice](PRIVACY.md) and [security policy](SECURITY.md).
 
 ## Develop and contribute
 
@@ -74,7 +78,7 @@ Build prerequisites: Python 3.11–3.14 and Apple Command Line Tools. These are 
 .venv/bin/python scripts/check_public_tree.py
 ```
 
-The UI is AppKit/Swift; `native_worker.py` launches local Python conversion. `converter.py` handles inputs and EPUB packaging, and `reading_layout.py` handles reading layout. The icon is drawn from `make-icon.swift`; no third-party icon artwork is bundled. All test documents are generated by the tests. No personal books or conversion history belong in this repository.
+The UI is AppKit/Swift; `native_worker.py` launches local Python conversion. `converter.py` handles inputs and EPUB packaging, `notebook_reader.py` reads saved code/notebook data, and `reading_layout.py` handles reading layout. The icon is drawn from `make-icon.swift`; no third-party icon artwork is bundled. All test documents are generated by the tests. No personal books or conversion history belong in this repository.
 
 See [contributing](CONTRIBUTING.md), [conduct](CODE_OF_CONDUCT.md), [changelog](CHANGELOG.md), and [release procedure](docs/RELEASING.md). To update a checkout, quit E-reader Maker, pull the changes, and rerun `./setup-macos.sh`.
 

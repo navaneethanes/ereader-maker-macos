@@ -17,7 +17,7 @@ ALLOWED_ROOT = {
     'NOTICE.md', 'THIRD_PARTY_NOTICES.md', 'PRIVACY.md', 'SECURITY.md',
     'CONTRIBUTING.md', 'CODE_OF_CONDUCT.md', 'CHANGELOG.md', 'requirements.txt',
     'EreaderMaker.swift', 'make-icon.swift', 'converter.py', 'reading_layout.py',
-    'book_covers.py', 'CoverArt.swift', 'CoverEditor.swift', 'RuntimeSetup.swift', 'cover-render.swift', 'runtime-bootstrap.sh', 'requirements-runtime.txt', 'native_worker.py', 'build-app.sh', 'setup-macos.sh', 'Start E-reader Maker.command',
+    'notebook_reader.py', 'book_covers.py', 'CoverArt.swift', 'CoverEditor.swift', 'RuntimeSetup.swift', 'cover-render.swift', 'runtime-bootstrap.sh', 'requirements-runtime.txt', 'native_worker.py', 'build-app.sh', 'setup-macos.sh', 'Start E-reader Maker.command',
 }
 GENERATED_ART = {'docs/cover-examples.jpg'}
 ALLOWED_SUFFIXES = {'.py', '.md', '.txt', '.yml', '.yaml', '.sh'}

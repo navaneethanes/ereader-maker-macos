@@ -22,10 +22,11 @@ import markdown
 from bs4 import BeautifulSoup
 from defusedxml import ElementTree
 from PIL import Image, ImageOps
+from notebook_reader import notebook_chapters
 from reading_layout import READER_CSS, prepare_html, pdf_page_html
 
 IMAGES = {'.png', '.jpg', '.jpeg', '.webp', '.gif', '.bmp', '.tif', '.tiff'}
-BASIC = {'.pdf', '.docx', '.txt', '.md', '.markdown', '.html', '.htm', '.epub', '.cbz'} | IMAGES
+BASIC = {'.ipynb', '.py', '.dbc', '.pdf', '.docx', '.txt', '.md', '.markdown', '.html', '.htm', '.epub', '.cbz'} | IMAGES
 EXTENDED = {'.mobi', '.azw', '.azw3', '.fb2', '.odt', '.lit', '.pdb', '.djvu', '.cbr'}
 MAX_EXPANDED = 500 * 1024 * 1024
 
@@ -164,7 +165,7 @@ def convert(source, destination, title, author='', mode='reflow', output='epub',
     warnings, assets, chapters = [], {}, []
     if output not in {'epub', 'azw3', 'pdf'} or mode not in {'auto', 'reflow', 'pages', 'ocr'}:
         raise ValueError('Unknown conversion option.')
-    if ext in {'.docx', '.epub', '.cbz', '.odt'}:
+    if ext in {'.docx', '.epub', '.cbz', '.odt', '.dbc'}:
         check_zip(source)
     if output == 'pdf':
         if ext != '.pdf':
@@ -240,6 +241,10 @@ def convert(source, destination, title, author='', mode='reflow', output='epub',
                 warnings.append('Page images preserve appearance but do not have adjustable text.' if mode == 'pages' else 'PDF text extraction can change columns, tables, spacing, and reading order. Images are omitted in text mode.')
             if mode == 'ocr':
                 warnings.append('OCR uses English recognition and may introduce errors. Other language packs are not selected in this version.')
+        elif ext in {'.ipynb', '.py', '.dbc'}:
+            progress('Reading saved code and notebook cells…')
+            chapters = notebook_chapters(source, title, assets, clean_html, add_image)
+            warnings.append('Code is displayed, never executed. Saved text/table outputs are limited to 10 lines per cell (80 characters per line); at most one saved PNG/JPEG plot per cell. Interactive outputs are omitted.')
         elif ext == '.docx':
             with source.open('rb') as stream:
                 result = mammoth.convert_to_html(stream, external_file_access=False)
