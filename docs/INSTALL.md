@@ -1,34 +1,43 @@
-# macOS installation and troubleshooting
+# Install E-reader Maker on a Mac
 
-Requirements: macOS 13 or newer, Python 3.11–3.14 (3.12 recommended), Apple's Xcode Command Line Tools, and internet access for initial dependency installation. Build for the architecture of your Python interpreter and compiler; use native arm64 tools on Apple Silicon. Intel is included in CI. No Windows/Linux desktop UI is provided.
+Requires macOS 13 or later. The same download supports Apple Silicon and Intel Macs.
 
-Install Command Line Tools with `xcode-select --install`, then wait for Apple's installation to complete. Download Python from https://www.python.org/downloads/macos/ or use an existing compatible installation.
+1. Download **E-reader-Maker-0.4.0-macOS.dmg** from [GitHub Releases](https://github.com/navaneethanes/ereader-maker-macos/releases).
+2. Open the DMG and drag **EreaderMaker.app** onto **Applications**. Eject the disk image after copying.
+3. Open **E-reader Maker** from Applications. This community build is not Apple-notarized. If macOS blocks it, open **System Settings → Privacy & Security → Open Anyway**, then confirm opening the app you downloaded from this repository. Follow [Apple's instructions](https://support.apple.com/102445). Do not disable Gatekeeper globally.
+4. Add a document, then click **Set up & convert**. The first conversion asks to download about 60 MB of tools from official GitHub/PyPI endpoints. This happens inside the app; no Terminal, Python installation, developer tools, or administrator password is needed for setup.
+5. Once setup finishes, the book is converted. Later conversions work offline. Click **Open folder** to find the EPUB.
 
-Download a source archive from GitHub Releases and extract it to a permanent, writable location in your home folder. In Terminal, change to that folder and run:
+A ZIP app download is also provided: unzip it and move EreaderMaker.app to Applications. Do not run the app inside the mounted DMG. The app can be moved independently of the source folder.
 
-```sh
-./setup-macos.sh
-open EreaderMaker.app
-```
+## Covers and titles
 
-Alternatively, clone the repository as shown in README.md. You may select an explicit interpreter with `EREADER_MAKER_PYTHON=/absolute/path/to/python3 ./setup-macos.sh`.
+Select a waiting book and click **Cover & title**. Edit the title, select one of 100 designs, or click **Choose image…** to add your own JPG, PNG, or TIFF. Your image is fitted without cropping. The title stays above it. Save with **Use this cover & title**, then convert.
 
-Setup installs pinned dependencies into `.venv`, compiles Swift for the current Mac, includes the generated icon and legal notices, and applies an ad-hoc signature. This is not Developer ID signing or Apple notarization. It does not disable Gatekeeper. Follow https://support.apple.com/102445 if macOS blocks an item you have reviewed and trust.
+By default, documents receive a generated cover and ebooks keep their existing covers. The 100 designs comprise 20 original motifs in five color palettes. They are designed for color and monochrome screens. Pick **No new cover** / **Keep existing cover** to preserve the original front pages. Choosing a new cover does not erase a PDF's original first page.
 
-Keep the app and supporting folder together. For a Desktop launcher, use Finder's File → Make Alias on EreaderMaker.app and move the alias. Do not copy just the app into Applications.
+## Storage and privacy
 
-## Common problems
+Books default to `~/Documents/E-reader Maker`; **Change…** selects a different destination. Files with the same name get a numbered suffix instead of being overwritten.
 
-- **Python is too old:** install a supported version, then pass its path through `EREADER_MAKER_PYTHON`. If an incompatible `.venv` already exists, quit the app, remove only that `.venv` folder, and rerun setup.
-- **No compiler:** complete Command Line Tools installation and retry.
-- **Conversion cannot start:** keep the app beside `native_worker.py`, `converter.py`, `reading_layout.py`, and `.venv`. Rerun setup if dependencies were removed.
-- **Optional inputs unavailable:** install Calibre separately in `/Applications/calibre.app`; install Tesseract separately for English OCR, for example `brew install tesseract` if you already use Homebrew. E-reader Maker checks the usual Homebrew command paths.
-- **Bad table or text order:** retry using Keep page layout. Preserve the original and check the output on your reader.
-- **Amazon rejects an EPUB:** original EPUBs receive only basic checks. Use the publisher's compatible edition where available. Amazon can change supported features independently of E-reader Maker.
-- **Interrupted conversion:** after quitting the app, remove abandoned `.ereader-maker-*` folders or empty reserved outputs in the destination only if you are certain no conversion is active.
+The private runtime and recent-book history live in `~/Library/Application Support/E-reader Maker`. The app never uploads your documents. Setup downloads checksummed tools; Send to Kindle opens Amazon's website and you choose whether to upload there. See PRIVACY.md.
+
+## Troubleshooting
+
+- **Setup fails:** check internet access to github.com, release-assets.githubusercontent.com, pypi.org, and files.pythonhosted.org, then retry. Checksums are verified before a runtime is accepted; do not bypass a failed check.
+- **Setup says it is already running after a crash:** quit all copies of the app. In Finder choose Go → Go to Folder and enter `~/Library/Application Support/E-reader Maker`. Remove the `.setup-lock` folder and any `.setup-*` temporary folder left by that failed installation, then reopen the app. Do not remove these while setup is running. Hidden files can be shown with Command-Shift-period.
+- **An incomplete runtime exists:** quit the app and remove only the named `runtime-v1-*` folder that has no `.ready` file, then retry. Preserve `native-library.json` and your output books.
+- **App cannot read a cover image:** use JPG, PNG, or TIFF below 40 MB and 40 megapixels. HEIC is not supported in this release.
+- **Optional inputs unavailable:** install Calibre separately in `/Applications/calibre.app`. For English OCR, install Tesseract separately; if you use Homebrew, `brew install tesseract`. Core conversion and covers need neither.
+- **Table or text order looks wrong:** try **Keep page layout** and review the result on your reader.
+- **EPUB rejected by Amazon:** existing EPUBs get basic validation, not full conformance testing. Use a publisher's compatible edition if available. Cover thumbnails on Kindle depend on Amazon's processing and device behavior.
 
 ## Update or uninstall
 
-Quit E-reader Maker before updating. In a Git checkout, run `git pull --ff-only` and then `./setup-macos.sh`. Setup does not intentionally delete books or history.
+Quit the app, replace it with the newer app from Releases, and reopen it. Updates may request a new private runtime; existing books and history are retained. Old runtime directories may be removed while the app is closed if you need disk space; the current one will be reinstalled if removed.
 
-To uninstall, first move any books you want to keep out of the project folder. Delete the project folder and any Finder aliases. Conversion history resides in that folder. The `local.ereadermaker.reader` preference domain can be removed using `defaults delete local.ereadermaker.reader`; external output books are not deleted by that command.
+To uninstall, remove the app and optionally `~/Library/Application Support/E-reader Maker`. Keep or delete your output books separately. A Desktop alias can be made with Finder's File → Make Alias. Existing source-build history is imported when the new app is first launched beside that old source folder.
+
+## Build from source (developers)
+
+Install Python 3.11–3.14 and Apple's Command Line Tools. Clone the repository, run `./setup-macos.sh`, then `open EreaderMaker.app`. To build a universal app, run `./build-app.sh --universal`. The app uses its private runtime even when built from source; the development `.venv` is used only for build tools and tests.

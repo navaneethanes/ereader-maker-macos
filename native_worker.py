@@ -11,6 +11,7 @@ import tempfile
 from pathlib import Path
 
 from converter import BASIC, EXTENDED, IMAGES, convert
+from book_covers import clean_title, apply_book_design
 
 
 def emit(kind, **values):
@@ -45,7 +46,9 @@ def run_batch(manifest, destination, layout):
                 raise ValueError('Choose a nonempty file smaller than 200 MB.')
             if source.suffix.lower() not in BASIC | EXTENDED | {'.doc', '.rtf'}:
                 raise ValueError('This file type is not supported. Try PDF, DOCX, EPUB, text, or an image.')
-            title = source.stem
+            title = (item.get("title") or clean_title(source.stem)).strip()
+            if not title or len(title) > 240:
+                raise ValueError("Choose a book title of 1–240 characters.")
             target = reserve_output(destination, title)
             emit('progress', id=key, message='Preparing your book…')
             with tempfile.TemporaryDirectory(prefix='.ereader-maker-', dir=destination) as work:
@@ -53,6 +56,10 @@ def run_batch(manifest, destination, layout):
                 mode = 'pages' if layout == 'pages' else 'auto'
                 notes = convert(source, output, title, mode=mode,
                                 progress=lambda message: emit('progress', id=key, message=message))
+                emit("progress", id=key, message="Preparing the cover…")
+                design_notes = apply_book_design(output, source, title, item)
+                if design_notes:
+                    notes = [n for n in notes if not n.startswith("EPUB copied without changes")] + design_notes
                 size = output.stat().st_size
                 if size > 200 * 1024 * 1024:
                     notes.append('This EPUB exceeds Amazon’s 200 MB web upload limit. Split the source into smaller parts.')

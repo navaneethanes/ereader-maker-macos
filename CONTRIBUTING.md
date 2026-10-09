@@ -11,3 +11,5 @@ Thank you for helping make documents easier to read. Small, focused changes are 
 By submitting a contribution, you confirm that you wrote it or have permission to contribute it, and agree to license it under the project's AGPL-3.0-only terms. Preserve third-party notices and disclose provenance for copied or adapted material. Do not submit proprietary code, assets without redistribution rights, or credentials. AI-assisted contributions require the same review and tests as other code; disclose substantial generated contributions in the pull request description.
 
 No separate copyright assignment or CLA is required. Contributors retain their copyright. Follow CODE_OF_CONDUCT.md and use SECURITY.md for vulnerabilities.
+
+Original decorative artwork contributions to the built-in cover templates must also be available under CC0-1.0, matching docs/COVERS.md. Do not contribute stock images or artwork you cannot dedicate under those terms. Application code remains AGPL-3.0-only.

@@ -1,6 +1,6 @@
 # Third-party notices
 
-E-reader Maker's original code is AGPL-3.0-only. This inventory covers the pinned Python runtime dependencies in `requirements.txt` for 0.3.0. Upstream code is installed from PyPI; it is not vendored in this source release. Copies of available upstream notices are in `licenses/`; those notices retain their own terms.
+E-reader Maker's original code is AGPL-3.0-only. This inventory covers the pinned Python runtime dependencies in `requirements.txt` for 0.4.0. Upstream code is installed from PyPI; it is not vendored in this source release. Copies of available upstream notices are in `licenses/`; those notices retain their own terms.
 
 | Package | Version | Declared license | Upstream |
 | --- | --- | --- | --- |
@@ -18,7 +18,7 @@ The PyMuPDF wheel's COPYING file is a short dual-license declaration. The comple
 
 Cobble's wheel does not include a separate license file. Its author's README explicitly declares BSD-2-Clause; see `licenses/cobble-NOTICE.txt`. No upstream copyright years have been invented. Resolve the complete notice before redistributing bundled Cobble code.
 
-Native wheels can contain additional components (including MuPDF's dependencies and Pillow's codecs). This table is not a complete binary redistribution inventory. Before bundling wheels or a frozen Python runtime, inventory their embedded components, include their notices, and supply any required corresponding source. This release ships application source only and fetches dependencies during setup.
+Native wheels can contain additional components (including MuPDF's dependencies and Pillow's codecs). This table is not a complete binary redistribution inventory. Before bundling wheels or a frozen Python runtime, inventory their embedded components, include their notices, and supply any required corresponding source. This release ships compiled Swift application/cover-renderer code and its corresponding source, and fetches conversion dependencies during first-use setup. It does not bundle Python or third-party Python binaries. The checksum-pinned runtime is CPython 3.12.15 from Astral python-build-standalone release 20261003; downloaded runtime licenses remain inside that distribution. Runtime source and build information: https://github.com/astral-sh/python-build-standalone/releases/tag/20261003.
 
 ## Optional and platform components
 
@@ -27,3 +27,5 @@ Calibre (GPL v3) and Tesseract (Apache-2.0) are optional, separately installed c
 ## Project artwork and examples
 
 The app icon is generated from `make-icon.swift` and covered by the project's AGPL-3.0-only license. No Amazon/Apple logo artwork or user documents are included. Test fixtures are generated from invented text and simple shapes.
+
+Built-in generated decorative cover artwork is dedicated under CC0-1.0. No stock image files or font files are bundled; macOS fonts are used for local rendering. Custom user images retain their own rights.

@@ -10,6 +10,11 @@ struct ReadingFile: Codable {
     var result: String? = nil
     var notes: [String] = []
     var failed = false
+    var title: String?
+    var titleEdited: Bool?
+    var coverMode: String?
+    var coverDesign: Int?
+    var coverImage: String?
 }
 
 final class DropSurface: NSView {
@@ -40,6 +45,10 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSWindowDelegate, NSTa
     let folderButton = NSButton(title: "Open folder", target: nil, action: nil)
     let sendButton = NSButton(title: "Send to Kindle ↗", target: nil, action: nil)
     let removeButton = NSButton(title: "Remove", target: nil, action: nil)
+    let coverButton = NSButton(title: "Cover & title", target: nil, action: nil)
+    var coverEditor: CoverEditor?
+    var setupTask: Process?
+    var setupLog = ""
     let layout = NSSegmentedControl(labels: ["Smart reading", "Keep page layout"], trackingMode: .selectOne, target: nil, action: nil)
     let progress = NSProgressIndicator()
     var files: [ReadingFile] = []
@@ -47,9 +56,9 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSWindowDelegate, NSTa
     var cancelled = false
     var fatalMessage: String?
     var manifestURL: URL?
-    let root = Bundle.main.bundleURL.deletingLastPathComponent()
+    var root: URL { RuntimeLocation.engine }
     var destination: URL!
-    var historyURL: URL { root.appendingPathComponent("data/native-library.json") }
+    var historyURL: URL { RuntimeLocation.support.appendingPathComponent("native-library.json") }
     let accent = NSColor(calibratedRed: 0.68, green: 0.76, blue: 1.0, alpha: 1)
 
     func applicationDidFinishLaunching(_ notification: Notification) {
@@ -59,7 +68,12 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSWindowDelegate, NSTa
            let icon = NSImage(contentsOf: iconURL) {
             NSApp.applicationIconImage = icon
         }
-        destination = root.appendingPathComponent("Kindle Books", isDirectory: true)
+        destination = FileManager.default.urls(for: .documentDirectory, in: .userDomainMask)[0].appendingPathComponent("E-reader Maker", isDirectory: true)
+        let legacy = Bundle.main.bundleURL.deletingLastPathComponent().appendingPathComponent("data/native-library.json")
+        if !FileManager.default.fileExists(atPath: historyURL.path), let data = try? Data(contentsOf: legacy) {
+            try? FileManager.default.createDirectory(at: RuntimeLocation.support, withIntermediateDirectories: true)
+            try? data.write(to: historyURL, options: .atomic)
+        }
         if let stored = UserDefaults.standard.string(forKey: "destination") { destination = URL(fileURLWithPath: stored) }
         if let data = try? Data(contentsOf: historyURL), let saved = try? JSONDecoder().decode([ReadingFile].self, from: data) {
             files = saved.filter { $0.result != nil }.suffix(100).map { $0 }
@@ -127,7 +141,8 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSWindowDelegate, NSTa
         configure(removeButton, action: #selector(removeSelected), symbol: nil)
         layout.selectedSegment = 0; layout.target = self; layout.action = #selector(layoutChanged)
         layout.toolTip = "Smart reading reflows simple pages and preserves complex layouts. Keep page layout uses page images for every PDF page."
-        let fileActions = NSStackView(views: [addButton, removeButton, spacer(), layout]); fileActions.spacing = 9
+        configure(coverButton, action: #selector(editCover), symbol: "book.closed")
+        let fileActions = NSStackView(views: [addButton, removeButton, coverButton, spacer(), layout]); fileActions.spacing = 9
         stack.addArrangedSubview(fileActions); fileActions.widthAnchor.constraint(equalTo: stack.widthAnchor).isActive = true
         detail.font = .systemFont(ofSize: 11); detail.textColor = .secondaryLabelColor; detail.maximumNumberOfLines = 2
         stack.addArrangedSubview(detail); detail.widthAnchor.constraint(equalTo: stack.widthAnchor).isActive = true
@@ -174,7 +189,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSWindowDelegate, NSTa
     }
     @objc func about() {
         let alert = NSAlert(); alert.messageText = "E-reader Maker"
-        alert.informativeText = "A local, native Mac converter for e-readers.\n\nCopyright © 2026 Navaneethan and E-reader Maker contributors. Licensed under GNU AGPL version 3. You may use, modify, and redistribute it under that license. Provided without warranty. See License and notices in the E-reader Maker menu.\n\nIndependent project; not affiliated with or endorsed by Amazon or Apple. Convert only documents you have permission to use. E-reader Maker does not remove DRM.\n\nConversion runs locally. Send to Kindle opens Amazon’s website; uploading there is your choice. Keep this app beside its project files and .venv folder."
+        alert.informativeText = "A local, native Mac converter for e-readers.\n\nCopyright © 2026 Navaneethan and E-reader Maker contributors. Licensed under GNU AGPL version 3. You may use, modify, and redistribute it under that license. Provided without warranty. See License and notices in the E-reader Maker menu.\n\nIndependent project; not affiliated with or endorsed by Amazon or Apple. Convert only documents you have permission to use. E-reader Maker does not remove DRM.\n\nConversion runs locally. Send to Kindle opens Amazon’s website; uploading there is your choice. The app prepares its private conversion tools on first use, then works offline. Original cover artwork is CC0; your images remain yours."
         alert.runModal()
     }
     @objc func showLicense() {
@@ -198,34 +213,36 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSWindowDelegate, NSTa
         let icon = NSImageView(image: NSImage(systemSymbolName: item.result != nil ? "book.closed.fill" : "doc.text", accessibilityDescription: nil)!)
         icon.contentTintColor = item.failed ? .systemOrange : accent; icon.translatesAutoresizingMaskIntoConstraints = false
         cell.addSubview(icon)
-        let name = label(URL(fileURLWithPath: item.path).lastPathComponent, size: 13, weight: .medium); name.lineBreakMode = .byTruncatingMiddle
+        let name = label(item.title ?? readableTitle(URL(fileURLWithPath: item.path).deletingPathExtension().lastPathComponent), size: 13, weight: .medium); name.lineBreakMode = .byTruncatingMiddle
         let state = label(item.state, size: 11, color: item.failed ? .systemOrange : .secondaryLabelColor); state.lineBreakMode = .byTruncatingTail
         let text = NSStackView(views: [name, state]); text.orientation = .vertical; text.alignment = .leading; text.spacing = 5; text.translatesAutoresizingMaskIntoConstraints = false
         cell.addSubview(text); cell.textField = name
         NSLayoutConstraint.activate([icon.leadingAnchor.constraint(equalTo: cell.leadingAnchor, constant: 9), icon.centerYAnchor.constraint(equalTo: cell.centerYAnchor), icon.widthAnchor.constraint(equalToConstant: 23), icon.heightAnchor.constraint(equalToConstant: 28), text.leadingAnchor.constraint(equalTo: icon.trailingAnchor, constant: 12), text.trailingAnchor.constraint(equalTo: cell.trailingAnchor, constant: -10), text.centerYAnchor.constraint(equalTo: cell.centerYAnchor), name.widthAnchor.constraint(equalTo: text.widthAnchor), state.widthAnchor.constraint(equalTo: text.widthAnchor)])
         return cell
     }
-    func tableViewSelectionDidChange(_ notification: Notification) { removeButton.isEnabled = task == nil && !table.selectedRowIndexes.isEmpty }
+    func tableViewSelectionDidChange(_ notification: Notification) { removeButton.isEnabled = task == nil && setupTask == nil && !table.selectedRowIndexes.isEmpty; coverButton.isEnabled = task == nil && setupTask == nil && table.selectedRow >= 0 && files[table.selectedRow].result == nil }
     @objc func pickFiles() {
-        guard task == nil else { return }
+        guard task == nil && setupTask == nil else { return }
         let panel = NSOpenPanel(); panel.canChooseFiles = true; panel.canChooseDirectories = false; panel.allowsMultipleSelection = true; panel.allowsOtherFileTypes = true
         panel.message = "Choose documents, ebooks, images, or comics to read on your Kindle."
         panel.beginSheetModal(for: window) { [weak self] response in if response == .OK { self?.add(panel.urls) } }
     }
     func add(_ urls: [URL]) {
-        guard task == nil else { status.stringValue = "Wait for this conversion to finish, or press Cancel."; return }
+        guard task == nil && setupTask == nil else { status.stringValue = "Wait for this conversion to finish, or press Cancel."; return }
         var count = 0
         for url in urls {
             var directory: ObjCBool = false
             guard FileManager.default.fileExists(atPath: url.path, isDirectory: &directory), !directory.boolValue else { continue }
             if files.contains(where: { $0.path == url.path && $0.result == nil }) { continue }
-            files.append(ReadingFile(path: url.path)); count += 1
+            var file = ReadingFile(path: url.path); file.title = readableTitle(url.deletingPathExtension().lastPathComponent)
+            files.append(file); count += 1
         }
         status.stringValue = count > 0 ? "\(count) file\(count == 1 ? "" : "s") added. Ready to make a better read." : "Choose files that aren’t already waiting in the list."
         refresh()
+        if count > 0 { table.selectRowIndexes(IndexSet(integer: files.count - count), byExtendingSelection: false) }
     }
     @objc func removeSelected() {
-        guard task == nil else { return }
+        guard task == nil && setupTask == nil else { return }
         for index in table.selectedRowIndexes.reversed() { files.remove(at: index) }
         persist(); refresh(); status.stringValue = "Removed from this list. Saved books are still in their folder."
     }
@@ -234,11 +251,13 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSWindowDelegate, NSTa
     }
     func refresh() {
         table.reloadData(); emptyState.isHidden = !files.isEmpty
-        let busy = task != nil
+        let busy = task != nil || setupTask != nil
         addButton.isEnabled = !busy; layout.isEnabled = !busy
         convertButton.isEnabled = !busy && files.contains(where: { $0.result == nil })
         removeButton.isEnabled = !busy && !table.selectedRowIndexes.isEmpty
-        cancelButton.isHidden = !busy; cancelButton.isEnabled = busy && !cancelled
+        coverButton.isEnabled = !busy && table.selectedRow >= 0 && files.indices.contains(table.selectedRow) && files[table.selectedRow].result == nil
+        convertButton.title = RuntimeLocation.ready ? "Convert for Kindle" : "Set up & convert"
+        cancelButton.isHidden = !busy || setupTask != nil; cancelButton.isEnabled = busy && !cancelled
         sendButton.isEnabled = files.contains { $0.result != nil }
         progress.isHidden = !busy
         if busy { progress.startAnimation(nil) } else { progress.stopAnimation(nil) }
@@ -248,7 +267,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSWindowDelegate, NSTa
     }
     func updateDestination() { destinationLabel.stringValue = "Saved to \(destination.path)"; destinationLabel.toolTip = destination.path }
     @objc func changeFolder() {
-        guard task == nil else { status.stringValue = "Finish this conversion before changing the folder."; return }
+        guard task == nil && setupTask == nil else { status.stringValue = "Finish this conversion before changing the folder."; return }
         let panel = NSOpenPanel(); panel.canChooseFiles = false; panel.canChooseDirectories = true; panel.canCreateDirectories = true; panel.prompt = "Save books here"
         panel.beginSheetModal(for: window) { [weak self] response in
             if response == .OK, let url = panel.url { self?.destination = url; UserDefaults.standard.set(url.path, forKey: "destination"); self?.updateDestination() }
@@ -270,20 +289,62 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSWindowDelegate, NSTa
         let item = files[sender.tag]; let alert = NSAlert(); alert.messageText = URL(fileURLWithPath: item.path).lastPathComponent
         alert.informativeText = item.notes.joined(separator: "\n\n"); alert.beginSheetModal(for: window)
     }
+
+    @objc func editCover() {
+        let row = table.selectedRow
+        guard task == nil && setupTask == nil, files.indices.contains(row), files[row].result == nil else { return }
+        let id = files[row].id
+        coverEditor = CoverEditor(item: files[row]) { [weak self] title, edited, mode, design, image in
+            guard let self = self, let i = self.files.firstIndex(where: { $0.id == id }) else { return }
+            self.files[i].title = title; self.files[i].titleEdited = edited; self.files[i].coverMode = mode; self.files[i].coverDesign = design; self.files[i].coverImage = image
+            self.refresh()
+        }
+        window.beginSheet(coverEditor!.panel)
+    }
+    func beginSetup() {
+        let alert = NSAlert(); alert.messageText = "Prepare E-reader Maker"
+        alert.informativeText = "One-time setup downloads about 60 MB of verified conversion tools from GitHub and PyPI into your user Library. No Python installation, Terminal commands, or administrator password is needed. After setup, conversion works offline."
+        alert.addButton(withTitle: "Set up & convert"); alert.addButton(withTitle: "Not now")
+        alert.beginSheetModal(for: window) { [weak self] response in
+            guard let self = self, response == .alertFirstButtonReturn else { return }
+            let process = Process(); let pipe = Pipe()
+            process.executableURL = URL(fileURLWithPath: "/bin/zsh")
+            process.arguments = [self.root.appendingPathComponent("runtime-bootstrap.sh").path, RuntimeLocation.support.path]
+            process.standardOutput = pipe; process.standardError = pipe; process.standardInput = FileHandle.nullDevice
+            self.setupTask = process; self.setupLog = ""; self.status.stringValue = "Preparing conversion tools. Keep this window open…"; self.refresh()
+            do { try process.run(); try? pipe.fileHandleForWriting.close() }
+            catch { self.setupTask = nil; self.status.stringValue = "Setup could not start: \(error.localizedDescription)"; self.refresh(); return }
+            DispatchQueue.global(qos: .utility).async {
+                while true {
+                    let data = pipe.fileHandleForReading.availableData
+                    if data.isEmpty { break }
+                    let text = String(decoding: data, as: UTF8.self)
+                    DispatchQueue.main.async { self.setupLog = String((self.setupLog + text).suffix(16000)) }
+                }
+                process.waitUntilExit()
+                DispatchQueue.main.async {
+                    self.setupTask = nil; self.refresh()
+                    if process.terminationStatus == 0 && RuntimeLocation.ready { self.start() }
+                    else { self.status.stringValue = "Setup did not finish. Check your internet connection and try again."; let error = NSAlert(); error.messageText = "Setup needs attention"; error.informativeText = String(self.setupLog.suffix(1800)); error.beginSheetModal(for: self.window) }
+                }
+            }
+        }
+    }
+
     @objc func start() {
-        guard task == nil else { return }
+        guard task == nil && setupTask == nil else { return }
         let pending = files.filter { $0.result == nil }
         guard !pending.isEmpty else { return }
         guard pending.count <= 100 else { status.stringValue = "Convert at most 100 files at a time."; return }
-        let python = root.appendingPathComponent(".venv/bin/python")
-        guard FileManager.default.isExecutableFile(atPath: python.path) else { status.stringValue = "Keep E-reader Maker in its project folder beside .venv."; return }
+        guard RuntimeLocation.ready else { beginSetup(); return }
+        let python = RuntimeLocation.python
         do {
             let manifest = FileManager.default.temporaryDirectory.appendingPathComponent("ereader-maker-\(UUID().uuidString).json")
             try JSONEncoder().encode(pending).write(to: manifest, options: .atomic); manifestURL = manifest
             let process = Process(); let output = Pipe(); let errorOutput = Pipe()
             process.executableURL = python; process.currentDirectoryURL = root
             process.arguments = [root.appendingPathComponent("native_worker.py").path, "--manifest", manifest.path, "--destination", destination.path, "--layout", layout.selectedSegment == 0 ? "auto" : "pages"]
-            var env = ProcessInfo.processInfo.environment; env["PYTHONUNBUFFERED"] = "1"; env["PATH"] = "/opt/homebrew/bin:/usr/local/bin:/usr/bin:/bin:/usr/sbin:/sbin"; process.environment = env
+            var env = ProcessInfo.processInfo.environment; env["PYTHONUNBUFFERED"] = "1"; env["PYTHONNOUSERSITE"] = "1"; env["PYTHONDONTWRITEBYTECODE"] = "1"; env.removeValue(forKey: "PYTHONHOME"); env.removeValue(forKey: "PYTHONPATH"); env["EREADER_COVER_RENDERER"] = Bundle.main.bundleURL.appendingPathComponent("Contents/Helpers/cover-render").path; env["PATH"] = "/opt/homebrew/bin:/usr/local/bin:/usr/bin:/bin:/usr/sbin:/sbin"; process.environment = env
             process.standardOutput = output; process.standardError = errorOutput; process.standardInput = FileHandle.nullDevice
             cancelled = false; fatalMessage = nil; task = process
             for i in files.indices where files[i].result == nil { files[i].state = "Waiting…"; files[i].failed = false; files[i].notes = [] }
@@ -342,17 +403,23 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSWindowDelegate, NSTa
         status.stringValue = "Cancelling…"; cancelButton.isEnabled = false
     }
     func windowShouldClose(_ sender: NSWindow) -> Bool {
+        if setupTask != nil { status.stringValue = "Please wait for setup to finish before closing the app."; return false }
         if task != nil { cancel() }
         return true
     }
     func applicationShouldTerminateAfterLastWindowClosed(_ sender: NSApplication) -> Bool { true }
     func applicationShouldTerminate(_ sender: NSApplication) -> NSApplication.TerminateReply {
+        if setupTask != nil { status.stringValue = "Please wait for setup to finish before quitting."; return .terminateCancel }
         if task != nil { cancel() }
         return .terminateNow
     }
 }
 
-let application = NSApplication.shared
-let delegate = AppDelegate()
-application.delegate = delegate
-application.run()
+@main enum EreaderApplication {
+    static func main() {
+        let application = NSApplication.shared
+        let delegate = AppDelegate()
+        application.delegate = delegate
+        application.run()
+    }
+}

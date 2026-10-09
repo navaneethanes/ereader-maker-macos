@@ -5,24 +5,24 @@ A small, local macOS app that turns documents into EPUBs for comfortable e-reade
 [![CI](https://github.com/navaneethanes/ereader-maker-macos/actions/workflows/ci.yml/badge.svg)](https://github.com/navaneethanes/ereader-maker-macos/actions/workflows/ci.yml)
 [![License: AGPL v3](https://img.shields.io/badge/License-AGPL_v3-blue.svg)](LICENSE)
 
-**Early release · macOS 13+ · build from source.** This release does not include a standalone installer or an Apple-notarized download. It builds a native app on your Mac; Python and the source folder remain required. Apple Silicon is tested locally; CI checks Apple Silicon and Intel builds. Windows and Linux app interfaces are not available.
+**macOS 13+ · Apple Silicon and Intel · one-time setup inside the app.**
 
-## Get started
+## Install
 
-1. Install [Python 3.11–3.14](https://www.python.org/downloads/macos/) (3.12 recommended) and Apple's Command Line Tools. To install the latter, run `xcode-select --install` in Terminal and wait for installation to finish.
-2. Download and unzip the [latest source release](https://github.com/navaneethanes/ereader-maker-macos/releases), or clone this repository:
+1. Download the **macOS DMG** from [Releases](https://github.com/navaneethanes/ereader-maker-macos/releases).
+2. Open it and drag **EreaderMaker.app** to **Applications**.
+3. Open the app. If macOS blocks this community build, use **System Settings → Privacy & Security → Open Anyway** for the download from this repository. It is ad-hoc signed, not Apple-notarized; [Apple's guidance](https://support.apple.com/102445) explains this step.
+4. Add a document and click **Set up & convert**. The app downloads about 60 MB of checksum-verified tools once, then converts offline. **No Terminal, Python installation, or developer tools are needed.**
 
-   ```sh
-   git clone https://github.com/navaneethanes/ereader-maker-macos.git
-   cd ereader-maker-macos
-   ./setup-macos.sh
-   open EreaderMaker.app
-   ```
+See the [illustrated-cover guide](docs/COVERS.md) and [installation/troubleshooting instructions](docs/INSTALL.md). A ZIP app download and matching source archive are also provided.
 
-   For a downloaded archive, open Terminal in the extracted folder and run `./setup-macos.sh`. Setup downloads the pinned dependencies from PyPI, compiles the app, and signs it locally. It does not request administrator access or change macOS security settings.
-3. Keep **EreaderMaker.app** beside `.venv` and the source files. To put it on your Desktop, select the app in Finder, choose **File → Make Alias**, and move the alias to your Desktop. Moving just the app will break conversion.
+## Make each book your own
 
-After setup, double-click **EreaderMaker.app** or **Start E-reader Maker.command**. See [installation and troubleshooting](docs/INSTALL.md) if you need help. Review downloaded code before running it. If macOS blocks a downloaded item, follow [Apple's guidance](https://support.apple.com/102445); do not disable Gatekeeper globally.
+Select a waiting book and click **Cover & title**. Clean up its title, choose from **100 cover designs** (20 original motifs in five palettes), or add your own JPG/PNG/TIFF. Flowers, animals, landscapes, and geometric illustrations are generated locally. The title is typeset above the artwork; custom images are fitted without cropping.
+
+![Examples of original locally generated book covers](docs/cover-examples.jpg)
+
+Documents receive a new cover automatically. Existing EPUB covers are kept by default, and can be replaced explicitly. No book content is uploaded to make a cover. Built-in decorative artwork is CC0; your photos and original books retain their own rights.
 
 ## Use it
 
@@ -34,7 +34,7 @@ After setup, double-click **EreaderMaker.app** or **Start E-reader Maker.command
 
 EPUBs are intended for Send to Kindle, not direct USB copying to a Kindle. Other EPUB-compatible readers can open them directly. Amazon controls acceptance, conversion, and device support.
 
-By default, files are saved in **Kindle Books** inside the project folder. Choose **Change…** for another destination. Existing files receive a numbered suffix instead of being overwritten. Removing a row does not delete a saved book. Your originals are read in place and remain unchanged.
+By default, files are saved in **Kindle Books** in your Documents folder (`~/Documents/E-reader Maker`). Choose **Change…** for another destination. Existing files receive a numbered suffix instead of being overwritten. Removing a row does not delete a saved book. Your originals are read in place and remain unchanged.
 
 ## Reading layout
 
@@ -44,7 +44,7 @@ By default, files are saved in **Kindle Books** inside the project folder. Choos
 - **Code and typography:** relative text sizes, headings, and code formatting. The reader controls its theme and typeface independently of the app's dark window.
 - **Scans:** original page images remain visible. English OCR text is added when optional Tesseract is installed. OCR can make mistakes.
 - **Keep page layout:** PDF pages become images, preserving appearance but losing adjustable text size.
-- **Existing EPUBs:** basic container validation and unchanged copying preserve the original design. This is not full EPUB conformance validation, sanitization, or a guarantee that Amazon will accept the book.
+- **Existing EPUBs:** by default, basic container validation and unchanged copying preserve the original design. Explicit title or cover edits change the EPUB package metadata while keeping chapter bytes. This is not full EPUB conformance validation, sanitization, or a guarantee that Amazon will accept the book.
 
 Conversion is heuristic. Check important tables, technical examples, mathematics, and complex layouts on your reader. Some PDF pages will work better with **Keep page layout**.
 
@@ -62,9 +62,11 @@ Limits: 100 files per batch, 200 MB per input, 500 MB declared archive expansion
 
 ## Privacy and security
 
-Native conversion has no server, analytics, account, or automatic upload. Conversion history includes local paths and is saved in `data/native-library.json`. Setup contacts PyPI; links open external websites in your browser. Optional tools have their own behavior. Original EPUBs may retain remote references and metadata. Read the [privacy notice](PRIVACY.md) and [security policy](SECURITY.md).
+Native conversion has no server, analytics, account, or automatic upload. Conversion history includes local paths and is saved in `~/Library/Application Support/E-reader Maker/native-library.json`. First setup contacts the official Astral Python-build-standalone GitHub release and PyPI; links open external websites in your browser. Optional tools have their own behavior. Original EPUBs may retain remote references and metadata. Read the [privacy notice](PRIVACY.md) and [security policy](SECURITY.md).
 
 ## Develop and contribute
+
+Build prerequisites: Python 3.11–3.14 and Apple Command Line Tools. These are only required for development, not the app download.
 
 ```sh
 ./setup-macos.sh
@@ -78,6 +80,6 @@ See [contributing](CONTRIBUTING.md), [conduct](CODE_OF_CONDUCT.md), [changelog](
 
 ## License and independence
 
-Copyright © 2026 Navaneethan and E-reader Maker contributors. E-reader Maker's original code, documentation, and icon source are licensed under **GNU AGPL-3.0-only**. Use, modification, and redistribution are allowed under [LICENSE](LICENSE), with no warranty. [Third-party dependencies](THIRD_PARTY_NOTICES.md) retain their own licenses. PyMuPDF/MuPDF use the AGPL open-source licensing route; this project does not purchase or grant a commercial Artifex license.
+Copyright © 2026 Navaneethan and E-reader Maker contributors. E-reader Maker's original code, documentation, and icon source are licensed under **GNU AGPL-3.0-only**. Use, modification, and redistribution are allowed under [LICENSE](LICENSE), with no warranty. Generated decorative cover artwork is separately dedicated under [CC0](docs/COVERS.md). [Third-party dependencies](THIRD_PARTY_NOTICES.md) retain their own licenses. PyMuPDF/MuPDF use the AGPL open-source licensing route; this project does not purchase or grant a commercial Artifex license.
 
 E-reader Maker is independent and is not affiliated with, endorsed by, or sponsored by Amazon or Apple. Amazon, Kindle, Apple, and macOS are trademarks of their respective owners, used only to describe compatibility. Convert and share only material you have the rights or permission to use. The software license does not license your input books or transfer their copyright. See [legal notes](docs/LEGAL.md).

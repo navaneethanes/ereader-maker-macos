@@ -8,7 +8,7 @@ E-reader Maker imports PyMuPDF, whose open-source licensing route is AGPL. The o
 
 People may use, study, modify, share, and sell copies when they follow the applicable license conditions. Redistributors must preserve required notices and provide Corresponding Source under the terms that apply to their distribution. If you modify and expose an AGPL-covered program for interaction over a network, review the AGPL's network source-offer requirement. See LICENSE and https://www.gnu.org/licenses/gpl-faq.html.
 
-This source release does not bundle Python packages, Python itself, Calibre, Tesseract, Apple frameworks, or commercial ebook content. Setup downloads packages separately. Third-party notices identify the pinned runtime dependencies. A future binary distributor must separately audit everything bundled, retain notices, and provide the required corresponding dependency sources; linking to this app repository alone is insufficient for bundled third-party binaries.
+The Mac application download bundles compiled original Swift code, original Python source, build-related notices, and procedural cover artwork code. It does not bundle Python packages, Python itself, Calibre, Tesseract, Apple frameworks, or commercial ebook content. First-use setup downloads a checksum-pinned runtime and packages separately from their upstream distributors. A matching source archive and build scripts accompany each app release. Third-party notices identify the pinned runtime dependencies. A future binary distributor must separately audit everything bundled, retain notices, and provide the required corresponding dependency sources; linking to this app repository alone is insufficient for bundled third-party binaries.
 
 ## Documents and DRM
 

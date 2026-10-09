@@ -31,4 +31,4 @@ echo 'Installing the pinned conversion dependencies from PyPI…'
 .venv/bin/python -m pip check
 ./build-app.sh
 echo 'Ready. Double-click EreaderMaker.app in this folder.'
-echo 'Keep the app beside its source files and .venv; use a Finder alias elsewhere.'
+echo 'The app can be moved to Applications; its first conversion prepares a private runtime.'

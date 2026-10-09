@@ -44,6 +44,9 @@ jobs:
         run: ./setup-macos.sh
       - name: Test conversion and worker behavior
         run: .venv/bin/python -m unittest discover -s tests -v
+      - name: Test drag-and-drop app with a fresh runtime
+        if: matrix.python != '3.14'
+        run: .venv/bin/python scripts/smoke_packaged.py
       - name: Verify app signature and legal resources
         run: |
           codesign --verify --strict --verbose=2 EreaderMaker.app

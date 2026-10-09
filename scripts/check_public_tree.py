@@ -17,8 +17,9 @@ ALLOWED_ROOT = {
     'NOTICE.md', 'THIRD_PARTY_NOTICES.md', 'PRIVACY.md', 'SECURITY.md',
     'CONTRIBUTING.md', 'CODE_OF_CONDUCT.md', 'CHANGELOG.md', 'requirements.txt',
     'EreaderMaker.swift', 'make-icon.swift', 'converter.py', 'reading_layout.py',
-    'native_worker.py', 'build-app.sh', 'setup-macos.sh', 'Start E-reader Maker.command',
+    'book_covers.py', 'CoverArt.swift', 'CoverEditor.swift', 'RuntimeSetup.swift', 'cover-render.swift', 'runtime-bootstrap.sh', 'requirements-runtime.txt', 'native_worker.py', 'build-app.sh', 'setup-macos.sh', 'Start E-reader Maker.command',
 }
+GENERATED_ART = {'docs/cover-examples.jpg'}
 ALLOWED_SUFFIXES = {'.py', '.md', '.txt', '.yml', '.yaml', '.sh'}
 PATTERNS = {
     'personal absolute path': rb'/(?:Users|home)/[A-Za-z0-9_.-]+/',
@@ -36,6 +37,11 @@ def main():
         path = Path(name)
         if path.parts[0] not in ALLOWED_DIRS and name not in ALLOWED_ROOT:
             errors.append(f'{name}: unexpected public file')
+        if name in GENERATED_ART:
+            data = subprocess.check_output(['git', 'show', f':{name}'], cwd=ROOT)
+            if len(data) > 500_000 or not data.startswith(b'\xff\xd8'):
+                errors.append(f'{name}: unexpected generated-art asset')
+            continue
         if path.parts[0] in ALLOWED_DIRS and path.suffix not in ALLOWED_SUFFIXES:
             errors.append(f'{name}: unsupported public file type')
         data = subprocess.check_output(['git', 'show', f':{name}'], cwd=ROOT)
