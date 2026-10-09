@@ -1,5 +1,17 @@
 # Changelog
 
+## 0.4.0 — 2026-10-09
+
+- Universal Mac app download with drag-to-Applications installation and first-use setup.
+- Private checksum-verified runtime; no manual Python installation or Terminal needed.
+- 100 locally generated cover designs: 20 motifs × five palettes, with title typography.
+- Editable book titles and optional custom JPG/PNG/TIFF cover images.
+- EPUB cover metadata and front page; existing ebook covers preserved by default.
+- Recent history moved to Application Support; books default to Documents/E-reader Maker.
+- Original decorative cover artwork dedicated under CC0-1.0.
+
+The community app is ad-hoc signed, not Apple-notarized.
+
 ## 0.3.0 — 2026-10-09
 
 First public macOS source release (preview).
