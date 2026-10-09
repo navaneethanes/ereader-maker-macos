@@ -4,6 +4,7 @@ import hashlib
 import os
 import posixpath
 import re
+import secrets
 import subprocess
 import tempfile
 import uuid
@@ -39,15 +40,7 @@ def clean_title(value):
 
 
 def suggested_design(title):
-    # Same stable algorithm as the native cover preview.
-    number = 5381
-    for byte in title.encode():
-        number = (number * 33 + byte) & ((1 << 64) - 1)
-    rules = [(r'data|spark|code|python|engineering|sql|computer', 15), (r'flower|garden|botanic', 0),
-             (r'animal|fox|wild', 6), (r'ocean|sea|water', 11), (r'space|star|astronom', 13),
-             (r'history|classic|told', 17), (r'quiet|poem|poetry', 1), (r'travel|mountain', 10)]
-    theme = next((theme for pattern, theme in rules if re.search(pattern, title.lower())), number % 20)
-    return theme * 5 + (number // 20) % 5
+    return secrets.randbelow(100)
 
 
 def render_cover(title, design, output, custom=None):

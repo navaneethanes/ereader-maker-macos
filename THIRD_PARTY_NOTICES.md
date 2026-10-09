@@ -1,6 +1,6 @@
 # Third-party notices
 
-E-reader Maker's original code is AGPL-3.0-only. This inventory covers the pinned Python runtime dependencies in `requirements.txt` for 0.4.0. Upstream code is installed from PyPI; it is not vendored in this source release. Copies of available upstream notices are in `licenses/`; those notices retain their own terms.
+E-reader Maker's original code is AGPL-3.0-only. This inventory covers the pinned Python runtime dependencies in `requirements.txt` for 0.5.0. Upstream code is installed from PyPI; it is not vendored in this source release. Copies of available upstream notices are in `licenses/`; those notices retain their own terms.
 
 | Package | Version | Declared license | Upstream |
 | --- | --- | --- | --- |

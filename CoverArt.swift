@@ -9,11 +9,7 @@ struct CoverArt {
         NSColor(srgbRed: CGFloat((hex >> 16) & 255)/255, green: CGFloat((hex >> 8) & 255)/255, blue: CGFloat(hex & 255)/255, alpha: 1)
     }
     static func suggested(_ title: String) -> Int {
-        let t = title.lowercased()
-        let rules: [(String, Int)] = [("data|spark|code|python|engineering|sql|computer",15), ("flower|garden|botanic",0), ("animal|fox|wild",6), ("ocean|sea|water",11), ("space|star|astronom",13), ("history|classic|told",17), ("quiet|poem|poetry",1), ("travel|mountain",10)]
-        let hash = title.utf8.reduce(UInt64(5381)) { ($0 &* 33) &+ UInt64($1) }
-        let theme = rules.first(where: { t.range(of:$0.0, options:.regularExpression) != nil })?.1 ?? Int(hash % 20)
-        return theme * 5 + Int((hash / 20) % 5)
+        Int.random(in: 0..<100)
     }
     static func name(_ index: Int) -> String { themes[(index % 100)/5] + " · " + palettes[index % 5] }
     static func render(title: String, design: Int, custom: NSImage? = nil, width: Int = 1200) -> NSImage {

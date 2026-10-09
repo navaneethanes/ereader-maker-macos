@@ -6,7 +6,7 @@ app='EreaderMaker.app'
 mkdir -p "$app/Contents/MacOS" "$app/Contents/Helpers" "$app/Contents/Resources/Legal" "$app/Contents/Resources/Engine" .build/module-cache
 cp LICENSE NOTICE.md THIRD_PARTY_NOTICES.md PRIVACY.md "$app/Contents/Resources/Legal/"
 cp -R licenses "$app/Contents/Resources/Legal/"
-cp native_worker.py converter.py reading_layout.py book_covers.py requirements-runtime.txt runtime-bootstrap.sh "$app/Contents/Resources/Engine/"
+cp native_worker.py notebook_reader.py converter.py reading_layout.py book_covers.py requirements-runtime.txt runtime-bootstrap.sh "$app/Contents/Resources/Engine/"
 cp docs/INSTALL.md "$app/Contents/Resources/INSTALL.md"
 swift -module-cache-path .build/module-cache make-icon.swift .build/EreaderMaker.iconset
 .venv/bin/python -c 'from PIL import Image; Image.open(".build/EreaderMaker.iconset/icon_512x512@2x.png").save("EreaderMaker.app/Contents/Resources/EreaderMaker.icns")'
@@ -31,8 +31,8 @@ cat > "$app/Contents/Info.plist" <<'PLIST'
 <key>CFBundleName</key><string>E-reader Maker</string>
 <key>CFBundleDisplayName</key><string>E-reader Maker</string>
 <key>CFBundleIdentifier</key><string>local.ereadermaker.reader</string>
-<key>CFBundleVersion</key><string>4</string>
-<key>CFBundleShortVersionString</key><string>0.4.0</string>
+<key>CFBundleVersion</key><string>5</string>
+<key>CFBundleShortVersionString</key><string>0.5.0</string>
 <key>CFBundlePackageType</key><string>APPL</string>
 <key>CFBundleExecutable</key><string>EreaderMaker</string>
 <key>CFBundleIconFile</key><string>EreaderMaker.icns</string>

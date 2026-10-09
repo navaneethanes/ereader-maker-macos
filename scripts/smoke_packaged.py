@@ -24,8 +24,10 @@ with tempfile.TemporaryDirectory(prefix='ereader-install-') as work:
     python = candidates[0]
     source = work / 'SQL_notes_and_examples.txt'
     source.write_text('Original sample chapter. Every word must remain available.')
+    notebook = work / 'Saved_code.ipynb'
+    notebook.write_text(json.dumps({'nbformat': 4, 'cells': [{'cell_type': 'code', 'source': 'print(123)', 'outputs': [{'output_type': 'stream', 'text': ''.join(f'row {i}\n' for i in range(30))}]}]}))
     manifest = work / 'batch.json'
-    manifest.write_text(json.dumps([{'id':'sample','path':str(source)}]))
+    manifest.write_text(json.dumps([{'id':'sample','path':str(source)}, {'id':'notebook','path':str(notebook)}]))
     env = dict(os.environ, PATH='/usr/bin:/bin', EREADER_COVER_RENDERER=str(app / 'Contents/Helpers/cover-render'), PYTHONNOUSERSITE='1', PYTHONDONTWRITEBYTECODE='1')
     env.pop('PYTHONPATH', None); env.pop('PYTHONHOME', None)
     result = subprocess.run([str(python), str(engine / 'native_worker.py'), '--manifest', str(manifest), '--destination', str(work / 'Books')], env=env, cwd=work, capture_output=True, text=True, timeout=120, check=True)
@@ -38,7 +40,11 @@ with tempfile.TemporaryDirectory(prefix='ereader-install-') as work:
         package = ElementTree.fromstring(z.read('OEBPS/content.opf'))
         assert package.find('.//{http://www.idpf.org/2007/opf}item[@properties="cover-image"]') is not None
         assert b'Every word must remain available.' in z.read('OEBPS/chapter-0.xhtml')
+    notebook_book = Path(next(e['path'] for e in events if e.get('id') == 'notebook' and e['event'] == 'done'))
+    with zipfile.ZipFile(notebook_book) as z:
+        chapter = z.read('OEBPS/chapter-0.xhtml')
+        assert b'print(123)' in chapter and b'row 9' in chapter and b'row 10' not in chapter
     before = python.stat().st_mtime_ns
     subprocess.run(['/bin/zsh', str(engine / 'runtime-bootstrap.sh'), str(support)], check=True, timeout=10)
     assert python.stat().st_mtime_ns == before, 'Ready runtimes must be reused without installing again'
-    print('Moved app, fresh private runtime, cover conversion, and offline reuse: passed.')
+    print('Moved app, fresh private runtime, cover and notebook conversion, and offline reuse: passed.')

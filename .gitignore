@@ -29,3 +29,7 @@ venv/
 app.py
 static/
 templates/
+
+# Private notebook inputs
+*.ipynb
+*.dbc
