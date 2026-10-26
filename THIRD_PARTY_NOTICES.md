@@ -6,7 +6,7 @@ E-reader Maker's original code is AGPL-3.0-only. This inventory covers the pinne
 | --- | --- | --- | --- |
 | PyMuPDF / MuPDF | 1.28.2 | GNU AGPL v3 (open-source route; commercial license available separately) | https://github.com/pymupdf/PyMuPDF |
 | Mammoth | 1.13.0 | BSD-2-Clause | https://github.com/mwilliamson/python-mammoth |
-| Pillow | 12.3.0 | MIT-CMU | https://github.com/python-pillow/Pillow |
+| Pillow | 13.0.0 | MIT-CMU | https://github.com/python-pillow/Pillow |
 | Python-Markdown | 3.11 | BSD-3-Clause | https://github.com/Python-Markdown/markdown |
 | Beautiful Soup | 4.15.0 | MIT | https://www.crummy.com/software/BeautifulSoup/ |
 | defusedxml | 0.7.1 | PSF license | https://github.com/tiran/defusedxml |
