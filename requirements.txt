@@ -6,5 +6,5 @@ Markdown==3.11
 beautifulsoup4==4.15.0
 defusedxml==0.7.1
 cobble==0.1.4
-soupsieve==2.10
+soupsieve==3.0.4
 typing_extensions==4.16.0
